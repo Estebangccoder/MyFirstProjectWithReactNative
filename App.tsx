@@ -1,20 +1,23 @@
-import { View, Text, StyleSheet } from 'react-native';
+
 import React from 'react';
-import { SafeAreaView } from 'react-native-safe-area-context';
+
+import { List } from './src/screens/main';
 
 export const App = () => {
   return (
-    <SafeAreaView style={styles.container}>
-    <View>
-       <Text><Contacs></Contacs></Text>
-    </View>
-    </SafeAreaView>
+    <List/>
    );
 };
 
-const styles = StyleSheet.create({
-  container:{
-    justifyContent:'center',
+// const styles = StyleSheet.create({
+//   container:{
+//     justifyContent:'center',
 
-  },
-});
+//   },
+
+//   bigBlue: {
+//     color: 'blue',
+//     fontWeight: 'bold',
+//     fontSize: 30,
+//   },
+// });
