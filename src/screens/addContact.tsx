@@ -53,7 +53,8 @@ export const ContactCreate = () => {
             fullname,
             phone,
             email,
-            address,
+            latitude,
+            altitude
             photo,
         };
 
@@ -212,4 +213,3 @@ const styles = StyleSheet.create({
 
     },
 });
-

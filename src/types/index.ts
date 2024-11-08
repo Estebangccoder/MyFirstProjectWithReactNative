@@ -3,6 +3,7 @@ export interface Item {
     fullname: string,
     phone:string,
     email:string,
-    address:string,
     photo:string | undefined,
+    latitude:number,
+    longitude:number,
 }
