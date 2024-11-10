@@ -1,3 +1,4 @@
+//import { checkOrRequestCameraPermission, checkOrRequestGalleryPermissions } from '../types/checkPermission';
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, ScrollView, Image } from 'react-native';
 import { RouteProp, useRoute, useNavigation } from '@react-navigation/native';
@@ -6,7 +7,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
-import {EditDetailsNavigation} from '../../types/navigationTypes';
+import { EditDetailsNavigation } from '../../types/navigationTypes';
+import MapPage from '../components/mapPage';
+
+import { checkOrRequestCameraPermission} from '../types/checkPermission';
 
 type EditContactRouteProp = RouteProp<{ params: { contact: Item } }, 'params'>;
 
@@ -18,29 +22,56 @@ export const EditContact: React.FC = () => {
     const [fullname, setFullName] = useState(contact.fullname);
     const [phone, setPhone] = useState(contact.phone);
     const [email, setEmail] = useState(contact.email);
-    const [address, setAddress] = useState(contact.address);
     const [photo, setPhoto] = useState(contact.photo);
+    const [latitude, setLatitude] = React.useState<number | undefined>(undefined);
+    const [longitude, setLongitude] = React.useState<number | undefined>(undefined);
+    const [showMap, setShowMap] = React.useState(false);
+
+
 
     const saveContact = async () => {
         try {
+
+            const validateEmail = (mail:string) => {
+                // Expresión regular para validar formato de email
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                return emailRegex.test(mail);
+              };
+
+            if (!fullname){
+                Alert.alert('Error','Please input a Name');
+                return;
+            }
+
+            if (!phone){
+                Alert.alert('Error','Please input a Phone Number');
+                return;
+            }
+
+            if (!validateEmail(email)) {
+                Alert.alert('Error', 'Please input a valid email');
+                return;
+            }
+
             const updatedContact: Item = {
                 id: contact.id,
                 fullname,
                 phone,
                 email,
-                address,
                 photo,
+                latitude,
+                longitude,
             };
 
             const contactId = `contact_${updatedContact.id}`;
             await AsyncStorage.setItem(contactId, JSON.stringify(updatedContact));
             Alert.alert('Success', 'Contact updated successfully.');
+             // Navega de vuelta a la pantalla de inicio
+            navigation.navigate('Home');
 
         } catch (error) {
             console.error('Error updating contact:', error);
             Alert.alert('Error', 'Failed to update contact.');
-        } finally{
-            navigation.navigate('Home');// Navega de vuelta a la pantalla de inicio
         }
     };
 
@@ -55,6 +86,13 @@ export const EditContact: React.FC = () => {
     };
 
     const takePhoto = async () => {
+        const hasPermission = await checkOrRequestCameraPermission(setPhoto);
+        if (!hasPermission) {
+            Alert.alert('Permission Required', 'Camera permission is needed to take a photo.');
+            return;
+        }
+
+
         const response = await launchCamera({ mediaType: 'photo' });
         if (response.assets && response.assets.length > 0) {
             const uri = response.assets[0].uri;
@@ -63,6 +101,13 @@ export const EditContact: React.FC = () => {
             }
         }
     };
+    const handleSaveCoordinates = (lat: number, lon: number) => {
+        setLatitude(lat);
+        setLongitude(lon);
+        setShowMap(false);
+        Alert.alert(`Coordinates Saved', Lat: ${lat}, Lon: ${lon}`);
+    };
+
 
     return (
         <SafeAreaProvider style={styles.generalView}>
@@ -89,6 +134,11 @@ export const EditContact: React.FC = () => {
                                 </Icon.Button>
                             </TouchableOpacity>
                         </View>
+                    </View>
+                    <View>
+                        <TouchableOpacity style={styles.button} >
+                            <Icon.Button style={styles.IconButton} name="map" size={30} onPress={() => setShowMap(true)}> Open Map</Icon.Button>
+                        </TouchableOpacity>
                         <TextInput
                             style={styles.input}
                             onChangeText={setFullName}
@@ -111,13 +161,15 @@ export const EditContact: React.FC = () => {
                             placeholder="Email"
                             placeholderTextColor="#f8f8ff"
                         />
-                        <TextInput
-                            style={styles.input}
-                            onChangeText={setAddress}
-                            value={address}
-                            placeholder="Address"
-                            placeholderTextColor="#f8f8ff"
-                        />
+                        <View style={[styles.location, styles.centerContent]}>
+                            <Text style={styles.centerText}>
+                                <Icon name="location-pin" size={30} style={styles.icon} />
+                                {contact.latitude}, {contact.longitude}
+                                {latitude !== undefined && longitude !== undefined
+                                    ? `Lat: ${latitude.toFixed(6)}, Lon: ${longitude.toFixed(6)}`
+                                    : ''}
+                            </Text>
+                        </View>
                     </View>
                     <View>
                         <TouchableOpacity style={styles.touchable} onPress={saveContact}>
@@ -125,6 +177,11 @@ export const EditContact: React.FC = () => {
                                 <Icon name="check" size={80} color="#f8f8ff" />
                             </View>
                         </TouchableOpacity>
+                        <MapPage
+                            visible={showMap}
+                            onClose={() => setShowMap(false)}
+                            onSaveCoordinates={handleSaveCoordinates}
+                        />
                     </View>
                 </ScrollView>
             </SafeAreaView>
@@ -195,6 +252,31 @@ const styles = StyleSheet.create({
         width: 200,
         alignSelf: 'center',
     },
+    info: {
+        fontSize: 20,
+        marginBottom: 10,
+        color: '#f0f8ff',
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    icon: {
+        marginRight: 12,
+        alignSelf: 'center',
+
+    },
+    location: {
+        marginTop: 10,
+    },
+    centerContent: {
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    centerText: {
+        textAlign: 'center',
+        color:'#f0f8ff',
+        fontSize:20,
+    },
 });
+
 
 export default EditContact;

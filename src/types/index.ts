@@ -4,6 +4,6 @@ export interface Item {
     phone:string,
     email:string,
     photo:string | undefined,
-    latitude:number,
-    longitude:number,
+    latitude:number | undefined,
+    longitude:number| undefined,
 }
