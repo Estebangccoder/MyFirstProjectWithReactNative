@@ -6,6 +6,8 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { HomeNavigation } from '../../types/navigationTypes';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { fetchWeatherData } from '../types/weatherService';
+import WeatherModal from '../components/weatherModal';
 
 type ContactDetailsRouteProp = RouteProp<{ params: { contact: Item } }, 'params'>;
 
@@ -15,6 +17,9 @@ export const ContactDetails: React.FC = () => {
     const navigation = useNavigation<HomeNavigation>();
     // Estado para el modal de confirmación
     const [modalVisible, setModalVisible] = useState(false);
+
+    const [weatherData, setWeatherData] = React.useState<any>(null);
+    const [showWeatherModal, setShowWeatherModal] = React.useState(false);
 
     // Función para eliminar el contacto de AsyncStorage
     const deleteContact = async () => {
@@ -32,6 +37,19 @@ export const ContactDetails: React.FC = () => {
         navigation.navigate('EditContact', { contact });
     };
 
+    const handleWeather = async (lat: number | undefined, lon: number | undefined) => {
+        try {
+            if (!lat || !lon){
+                Alert.alert('The ubication is not available for this contact');
+            }
+            const data = await fetchWeatherData(lat, lon);
+            console.log('Weather data:', data); // Añade este log para depurar
+            setWeatherData(data);
+            setShowWeatherModal(true);
+        } catch {
+           Alert.alert('Error', 'Failed to fetch weather data');
+        }
+    };
     return (<SafeAreaProvider>
         <SafeAreaView style={styles.container}>
             <View style={styles.card}>
@@ -39,12 +57,15 @@ export const ContactDetails: React.FC = () => {
                 <Text style={styles.name}>{contact.fullname}</Text>
                 <Text style={styles.info}><Icon name="call" size={28} style={styles.icon} /> {contact.phone}</Text>
                 <Text style={styles.info}><Icon name="email" size={28} style={styles.icon} /> {contact.email}</Text>
+                <TouchableOpacity onPress={()=>handleWeather(contact.latitude, contact.longitude)}>
                 <Text style={styles.info}>
                     <Icon name="location-pin" size={28} style={styles.icon} />
                     {contact.latitude !== undefined && contact.longitude !== undefined
                         ? `Lat: ${contact.latitude.toFixed(6)}, Lon: ${contact.longitude.toFixed(6)}`
                         : 'No location selected'}
                 </Text>
+                </TouchableOpacity>
+
             </View>
 
             <TouchableOpacity style={styles.edit} >
@@ -84,6 +105,11 @@ export const ContactDetails: React.FC = () => {
                     </View>
                 </View>
             </Modal>
+            <WeatherModal
+                            visible={showWeatherModal}
+                            onClose={() => setShowWeatherModal(false)}
+                            weatherData={weatherData}
+                        />
         </SafeAreaView>
     </SafeAreaProvider>
     );

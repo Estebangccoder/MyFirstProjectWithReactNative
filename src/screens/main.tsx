@@ -12,10 +12,11 @@ type ItemProps = {
   phone: string;
   email: string;
   photo: string;
-  address:string;
+  latitude: number;
+  longitude: number;
 };
 
-const ItemComponent = ({ fullname, phone, email, photo, address }: ItemProps) => (
+const ItemComponent = ({ fullname, phone, email, photo }: ItemProps) => (
   <View style={styles.contact}>
     <View>
       <Image
@@ -27,7 +28,6 @@ const ItemComponent = ({ fullname, phone, email, photo, address }: ItemProps) =>
       <Text style={styles.fullname}>{fullname}</Text>
       <Text style={styles.info}>{phone}</Text>
       <Text style={styles.info}>{email}</Text>
-      <Text style={styles.address}>{address}</Text>
     </View>
   </View>
 );
@@ -85,7 +85,7 @@ return unsubscribe;
           keyExtractor={item => item.id.toString()}
           renderItem={({ item }) => (
             <TouchableOpacity onPress={() =>handleViewContact(item)}>
-              <ItemComponent photo={item.photo} fullname={item.fullname} phone={item.phone} email={item.email} id={item.id} address={item.address} />
+              <ItemComponent photo={item.photo} fullname={item.fullname} phone={item.phone} email={item.email} id={item.id} latitude={item.latitude} longitude={item.longitude} />
             </TouchableOpacity>
           )}
         />

@@ -1,7 +1,9 @@
+# Ignorar el archivo .env
+.env
 # OSX
 #
 .DS_Store
-.env
+
 # Xcode
 #
 build/

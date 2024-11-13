@@ -76,7 +76,7 @@ export const checkOrRequestLocationPermission = async (): Promise<boolean> => {
     }
   };
 
-  export const checkOrRequestGalleryPermissions = async (setImageUri: any) => {
+  export const checkOrRequestGalleryPermissions = async (setImageUri: any): Promise<boolean>=> {
     const version = Number(Platform.Version);
     const galleryPermission =
       version >= 33
@@ -87,21 +87,24 @@ export const checkOrRequestLocationPermission = async (): Promise<boolean> => {
 
     if (result === RESULTS.GRANTED) {
       openGallery(setImageUri);
+      return true;
     } else if (result === RESULTS.DENIED || result === RESULTS.LIMITED) {
       const requestResult = await request(galleryPermission);
       if (requestResult === RESULTS.GRANTED) {
         openGallery(setImageUri);
+        return true;
       } else {
         Alert.alert(
           'Permission Denied',
           'Gallery access is required to select an image.',
         );
+        return false;
       }
     } else {
       Alert.alert(
         'Permission Error',
         'Gallery access has been permanently denied. Enable it in settings.',
       );
-     // return false;
+      return false;
     }
   };
